@@ -16,7 +16,7 @@ try {
 
     // Get and sanitize action
     $action = Security::sanitize($_GET['action'] ?? 'databases');
-    $validActions = ['databases', 'collections'];
+    $validActions = ['databases', 'collections', 'documents'];
 
     if (! in_array($action, $validActions)) {
         $action = 'databases';
@@ -73,6 +73,46 @@ try {
                 'database' => $database,
                 'collections' => $collections,
                 'currentDatabase' => $database,
+            ]);
+            break;
+
+        case 'documents':
+            // Get and validate parameters
+            $database = Security::sanitize($_GET['db'] ?? '');
+            $collection = Security::sanitize($_GET['collection'] ?? '');
+            $page = Security::validatePageNumber($_GET['page'] ?? 1);
+            $sortOrder = ($_GET['sort'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+            if (! Security::validateDatabaseName($database)) {
+                View::error('Invalid database name', 400);
+            }
+
+            if (! Security::validateCollectionName($collection)) {
+                View::error('Invalid collection name', 400);
+            }
+
+            // Get total count
+            $totalCount = $mongo->countDocuments($database, $collection);
+
+            // Create paginator
+            $paginator = new Paginator($totalCount, 50, $page);
+
+            // Get documents with sort order
+            $rows = $mongo->getDocuments($database, $collection, $paginator->getCurrentPage(), $paginator->getLimit(), $sortOrder);
+
+            $pageTitle = "Collection: $collection";
+            $breadcrumbs = View::breadcrumbs([
+                ['label' => $database, 'url' => View::url(['action' => 'collections', 'db' => $database])],
+                ['label' => $collection, 'url' => View::url(['action' => 'documents', 'db' => $database, 'collection' => $collection])],
+            ]);
+
+            $content = View::render('documents', [
+                'database' => $database,
+                'collection' => $collection,
+                'rows' => $rows,
+                'paginator' => $paginator,
+                'currentDatabase' => $database,
+                'sortOrder' => $sortOrder,
             ]);
             break;
 

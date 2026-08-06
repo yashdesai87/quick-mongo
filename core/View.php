@@ -178,6 +178,15 @@ class View
     }
 
     /**
+     * Human-readable form of a converted _id (compound keys become JSON).
+     * Escape the result at output.
+     */
+    public static function documentId($id)
+    {
+        return is_scalar($id) ? (string) $id : json_encode($id, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
      * Check if current page matches
      */
     public static function isCurrentPage($action, $currentAction)

@@ -113,6 +113,56 @@ class MongoClient
     }
 
     /**
+     * Get a page of documents sorted by _id.
+     *
+     * Each row carries the lossless link id next to the converted document,
+     * because conversion flattens BSON types (ObjectId, dates) into strings.
+     *
+     * @return array<int, array{id: string, document: array}>
+     */
+    public function getDocuments($database, $collection, $page = 1, $limit = 50, $sortOrder = 'desc')
+    {
+        $skip = ($page - 1) * $limit;
+        $sortDirection = $sortOrder === 'asc' ? 1 : -1;
+
+        $query = new MongoDB\Driver\Query(
+            [],
+            [
+                'limit' => $limit,
+                'skip' => $skip,
+                'sort' => ['_id' => $sortDirection],
+            ]
+        );
+
+        $cursor = $this->client->executeQuery("$database.$collection", $query);
+
+        $rows = [];
+        foreach ($cursor as $document) {
+            $rows[] = [
+                'id' => $this->idToParam($document->_id),
+                'document' => $this->convertDocument($document),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Get a single document by ID
+     */
+    public function getDocument($database, $collection, $id, $convert = true)
+    {
+        $query = new MongoDB\Driver\Query(['_id' => $this->toIdFilter($id)], ['limit' => 1]);
+        $cursor = $this->client->executeQuery("$database.$collection", $query);
+
+        foreach ($cursor as $document) {
+            return $convert ? $this->convertDocument($document) : $document;
+        }
+
+        return null;
+    }
+
+    /**
      * Count documents in a collection
      */
     public function countDocuments($database, $collection)
@@ -156,6 +206,34 @@ class MongoClient
             error_log('Failed to get collection stats: '.$e->getMessage());
 
             return;
+        }
+    }
+
+    /**
+     * Encode a raw BSON _id as canonical extended JSON for use in links.
+     * Preserves every BSON type exactly, including compound keys.
+     */
+    public function idToParam($rawId)
+    {
+        return MongoDB\BSON\toCanonicalExtendedJSON(MongoDB\BSON\fromPHP(['_id' => $rawId]));
+    }
+
+    /**
+     * Build an _id filter value: the inverse of idToParam(). Hand-typed ids
+     * fall back to ObjectId when valid, raw string otherwise.
+     */
+    private function toIdFilter($id)
+    {
+        try {
+            return MongoDB\BSON\toPHP(MongoDB\BSON\fromJSON($id))->_id;
+        } catch (Exception $e) {
+            // Not extended JSON produced by idToParam()
+        }
+
+        try {
+            return new MongoDB\BSON\ObjectId($id);
+        } catch (Exception $e) {
+            return $id;
         }
     }
 
