@@ -16,7 +16,7 @@ try {
 
     // Get and sanitize action
     $action = Security::sanitize($_GET['action'] ?? 'databases');
-    $validActions = ['databases', 'collections', 'documents'];
+    $validActions = ['databases', 'collections', 'documents', 'document'];
 
     if (! in_array($action, $validActions)) {
         $action = 'databases';
@@ -113,6 +113,51 @@ try {
                 'paginator' => $paginator,
                 'currentDatabase' => $database,
                 'sortOrder' => $sortOrder,
+            ]);
+            break;
+
+        case 'document':
+            // Get and validate parameters. The id is extended JSON from
+            // MongoClient::idToParam(), so it is escaped at output, not sanitized here.
+            $database = Security::sanitize($_GET['db'] ?? '');
+            $collection = Security::sanitize($_GET['collection'] ?? '');
+            $id = trim($_GET['id'] ?? '');
+
+            if (! Security::validateDatabaseName($database)) {
+                View::error('Invalid database name', 400);
+            }
+
+            if (! Security::validateCollectionName($collection)) {
+                View::error('Invalid collection name', 400);
+            }
+
+            if ($id === '') {
+                View::error('Document ID is required', 400);
+            }
+
+            // Get document
+            $document = $mongo->getDocument($database, $collection, $id);
+
+            if (! $document) {
+                View::error('Document not found', 404);
+            }
+
+            $documentId = View::documentId($document['_id'] ?? null);
+
+            $pageTitle = "Document: $documentId";
+            $breadcrumbs = View::breadcrumbs([
+                ['label' => $database, 'url' => View::url(['action' => 'collections', 'db' => $database])],
+                ['label' => $collection, 'url' => View::url(['action' => 'documents', 'db' => $database, 'collection' => $collection])],
+                ['label' => 'Document', 'url' => null],
+            ]);
+
+            $content = View::render('document', [
+                'database' => $database,
+                'collection' => $collection,
+                'document' => $document,
+                'documentId' => $documentId,
+                'idParam' => $id,
+                'currentDatabase' => $database,
             ]);
             break;
 
