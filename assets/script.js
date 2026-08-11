@@ -192,7 +192,95 @@ $(document).ready(function() {
         });
     }
 
+    // Timezone-aware timestamps
+    initTimezone();
+
 });
+
+// --- Timezone handling -------------------------------------------------
+
+function getSelectedTimezone() {
+    return localStorage.getItem('qmTz') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+function formatRelative(date) {
+    const diffMins = Math.round((Date.now() - date.getTime()) / 60000);
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return diffMins + (diffMins === 1 ? ' min ago' : ' mins ago');
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return diffHours + (diffHours === 1 ? ' hour ago' : ' hours ago');
+    const diffDays = Math.floor(diffHours / 24);
+    return diffDays + (diffDays === 1 ? ' day ago' : ' days ago');
+}
+
+function renderTimes() {
+    const tz = getSelectedTimezone();
+    let formatter;
+    try {
+        // Explicit parts only: dateStyle/timeStyle cannot combine with timeZoneName
+        formatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false,
+            timeZoneName: 'short'
+        });
+    } catch (e) {
+        return; // invalid timezone; keep server-rendered UTC fallback
+    }
+
+    document.querySelectorAll('.js-time').forEach(function(el) {
+        const date = new Date(el.getAttribute('datetime'));
+        if (isNaN(date)) return;
+
+        const parts = {};
+        formatter.formatToParts(date).forEach(function(p) { parts[p.type] = p.value; });
+        const text = parts.year + '-' + parts.month + '-' + parts.day + ' '
+            + parts.hour + ':' + parts.minute + ':' + parts.second
+            + (parts.timeZoneName ? ' ' + parts.timeZoneName : '');
+
+        // Replace contents each pass so re-renders stay idempotent
+        el.replaceChildren(document.createTextNode(text));
+        if (el.hasAttribute('data-relative')) {
+            const rel = document.createElement('div');
+            rel.className = 'time-relative';
+            rel.textContent = formatRelative(date);
+            el.appendChild(rel);
+        }
+    });
+}
+
+function initTimezone() {
+    const select = document.getElementById('tz-selector');
+    if (!select) {
+        renderTimes();
+        return;
+    }
+
+    const current = getSelectedTimezone();
+    let zones = [];
+    if (typeof Intl.supportedValuesOf === 'function') {
+        zones = Intl.supportedValuesOf('timeZone');
+    }
+    // supportedValuesOf omits UTC and may omit the active zone
+    if (!zones.includes('UTC')) zones.unshift('UTC');
+    if (current && !zones.includes(current)) zones.unshift(current);
+
+    zones.forEach(function(tz) {
+        const opt = document.createElement('option');
+        opt.value = tz;
+        opt.textContent = tz;
+        if (tz === current) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    select.addEventListener('change', function() {
+        localStorage.setItem('qmTz', select.value);
+        renderTimes();
+    });
+
+    renderTimes();
+}
 
 // Helper function to format bytes
 function formatBytes(bytes, decimals = 2) {

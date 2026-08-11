@@ -25,6 +25,10 @@
                     <span class="logo-icon">🗄️</span>
                     Quick Mongo
                 </h1>
+                <div class="header-info">
+                    <label for="tz-selector">Timezone</label>
+                    <select id="tz-selector" title="Display timezone for timestamps"></select>
+                </div>
             </div>
         </header>
 
