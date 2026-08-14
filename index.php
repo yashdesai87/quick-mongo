@@ -16,7 +16,7 @@ try {
 
     // Get and sanitize action
     $action = Security::sanitize($_GET['action'] ?? 'databases');
-    $validActions = ['databases', 'collections', 'documents', 'document'];
+    $validActions = ['databases', 'collections', 'documents', 'document', 'download'];
 
     if (! in_array($action, $validActions)) {
         $action = 'databases';
@@ -161,6 +161,59 @@ try {
             ]);
             break;
 
+        case 'download':
+            // Stream a GridFS file: the collection must be a <bucket>.files collection
+            $database = Security::sanitize($_GET['db'] ?? '');
+            $collection = Security::sanitize($_GET['collection'] ?? '');
+            $id = trim($_GET['id'] ?? '');
+
+            if (! Security::validateDatabaseName($database)) {
+                View::error('Invalid database name', 400);
+            }
+
+            if (! Security::validateCollectionName($collection)) {
+                View::error('Invalid collection name', 400);
+            }
+
+            if (substr($collection, -6) !== '.files') {
+                View::error('Downloads are only available for GridFS *.files collections', 400);
+            }
+
+            $bucket = substr($collection, 0, -6);
+            $file = $mongo->getGridFsFile($database, $bucket, $id);
+
+            if ($file === null) {
+                View::error('File not found', 404);
+            }
+
+            $fileDoc = $file['file'];
+
+            $contentType = $fileDoc->contentType ?? $fileDoc->metadata->contentType ?? '';
+            if (! is_string($contentType) || ! preg_match('#^[\w.+-]+/[\w.+-]+$#', $contentType)) {
+                $contentType = 'application/octet-stream';
+            }
+
+            $filename = Security::sanitizeFilename($fileDoc->filename ?? '');
+            if ($filename === '') {
+                $filename = Security::sanitizeFilename(json_encode($fileDoc->_id)) ?: 'download';
+            }
+
+            // Send chunks straight to the client; GridFS files can exceed PHP memory
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+
+            header('Content-Type: '.$contentType);
+            if (isset($fileDoc->length)) {
+                header('Content-Length: '.(int) $fileDoc->length);
+            }
+            header('Content-Disposition: attachment; filename="'.$filename.'"');
+
+            foreach ($file['chunks'] as $chunk) {
+                echo $chunk->data->getData();
+                flush();
+            }
+            exit;
     }
 
     // Get list of all databases for sidebar

@@ -181,6 +181,33 @@ class MongoClient
     }
 
     /**
+     * Read a GridFS file document plus a cursor over its chunks in order.
+     * The chunks are streamed by the caller, never buffered here.
+     *
+     * @return array{file: object, chunks: MongoDB\Driver\Cursor}|null
+     */
+    public function getGridFsFile($database, $bucket, $fileId)
+    {
+        $id = $this->toIdFilter($fileId);
+
+        $query = new MongoDB\Driver\Query(['_id' => $id], ['limit' => 1]);
+        $cursor = $this->client->executeQuery("$database.$bucket.files", $query);
+        $file = null;
+        foreach ($cursor as $doc) {
+            $file = $doc;
+        }
+
+        if ($file === null) {
+            return null;
+        }
+
+        $chunksQuery = new MongoDB\Driver\Query(['files_id' => $id], ['sort' => ['n' => 1]]);
+        $chunks = $this->client->executeQuery("$database.$bucket.chunks", $chunksQuery);
+
+        return ['file' => $file, 'chunks' => $chunks];
+    }
+
+    /**
      * Get collection statistics
      */
     public function getCollectionStats($database, $collection)

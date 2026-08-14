@@ -13,6 +13,16 @@
                 <strong>Document ID:</strong>
                 <code class="doc-id-display"><?php echo Security::escape($documentId); ?></code>
             </div>
+            <?php if (substr($collection, -6) === '.files') { ?>
+                <div class="info-row">
+                    <strong>GridFS file:</strong>
+                    <code><?php echo Security::escape($document['filename'] ?? '(no filename)'); ?></code>
+                    | <?php echo View::formatBytes($document['length'] ?? 0); ?>
+                    | uploaded <?php echo View::time($document['uploadDate'] ?? null); ?>
+                    <a href="?action=download&db=<?php echo urlencode($database); ?>&collection=<?php echo urlencode($collection); ?>&id=<?php echo urlencode($idParam); ?>"
+                       class="btn btn-sm btn-secondary">Download</a>
+                </div>
+            <?php } ?>
         </div>
 
         <div class="document-content">
