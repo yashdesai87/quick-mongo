@@ -77,7 +77,11 @@ define('MONGO_DEFAULT_DB', $env['MONGO_DB'] ?? '');
 define('APP_DEBUG', ($env['APP_DEBUG'] ?? 'false') === 'true');
 
 // Session (used by the rate limiter)
-session_start();
+session_start([
+    'cookie_httponly' => true,
+    'use_only_cookies' => true,
+    'cookie_samesite' => 'Lax',
+]);
 
 // Error handler
 set_error_handler(function ($severity, $message, $file, $line) {
