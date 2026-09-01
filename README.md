@@ -33,6 +33,34 @@ A read-only MongoDB browser in a single PHP folder. No Composer, no build step: 
 
 3. Open the URL in a browser.
 
+## Run with Docker
+
+The image `codeboxindia/quick-mongo` is built for `linux/amd64` and `linux/arm64`. The usual way to use it is as one more service in your project's `docker-compose.yml`, next to your Mongo service:
+
+```yaml
+services:
+  mongo:
+    image: mongo:7
+
+  quick-mongo:
+    image: codeboxindia/quick-mongo
+    ports:
+      - "8081:80"
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: myapp
+```
+
+`MONGO_URI` points at the Mongo service name on the compose network. `MONGO_DB` and `APP_DEBUG` are optional and mean the same as in `.env`.
+
+For a Mongo running on the host itself:
+
+```
+docker run --rm -p 8081:80 -e MONGO_URI=mongodb://host.docker.internal:27017 codeboxindia/quick-mongo
+```
+
+On Linux add `--add-host=host.docker.internal:host-gateway` so that hostname resolves.
+
 ## Security
 
 - Read-only by design: the code issues only list, find, count and collStats commands. There is no write, update or delete path.
