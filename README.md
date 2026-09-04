@@ -13,7 +13,7 @@ A read-only MongoDB browser in a single PHP folder. No Composer, no build step: 
 
 ## Requirements
 
-- PHP 8.1 or newer with the `mongodb` extension (`pecl install mongodb`)
+- PHP 8.1 or newer with the `mongodb` extension 1.16 or newer (`pecl install mongodb`)
 - A MongoDB server the PHP driver can reach
 - Apache 2.4 with `mod_rewrite`, or PHP's built-in server for local use
 

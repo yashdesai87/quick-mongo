@@ -242,7 +242,7 @@ class MongoClient
      */
     public function idToParam($rawId)
     {
-        return MongoDB\BSON\toCanonicalExtendedJSON(MongoDB\BSON\fromPHP(['_id' => $rawId]));
+        return MongoDB\BSON\Document::fromPHP(['_id' => $rawId])->toCanonicalExtendedJSON();
     }
 
     /**
@@ -252,7 +252,10 @@ class MongoClient
     private function toIdFilter($id)
     {
         try {
-            return MongoDB\BSON\toPHP(MongoDB\BSON\fromJSON($id))->_id;
+            $document = MongoDB\BSON\Document::fromJSON($id);
+            if ($document->has('_id')) {
+                return $document->get('_id');
+            }
         } catch (Exception $e) {
             // Not extended JSON produced by idToParam()
         }
