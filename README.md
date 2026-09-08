@@ -71,6 +71,21 @@ On Linux add `--add-host=host.docker.internal:host-gateway` so that hostname res
 
 jQuery and Prism load from public CDNs; every other asset is local.
 
+## Building the image
+
+Multi-platform pushes need a `docker-container` builder, created once:
+
+```
+docker buildx create --name quick-mongo --driver docker-container --use
+```
+
+Each release is one build that pushes both platforms under a version tag and `latest`:
+
+```
+docker buildx build --builder quick-mongo --platform linux/amd64,linux/arm64 \
+  -t codeboxindia/quick-mongo:<version> -t codeboxindia/quick-mongo:latest --push .
+```
+
 ## License
 
 Apache License 2.0. See `LICENSE`.
