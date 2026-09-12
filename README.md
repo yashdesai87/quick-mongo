@@ -11,6 +11,20 @@ A read-only MongoDB browser in a single PHP folder. No Composer, no build step: 
 - Downloads files from any GridFS bucket (open a document in a `*.files` collection)
 - Renders timestamps in a timezone picked in the header (defaults to the browser timezone)
 
+## Screenshots
+
+Collections in a database, with document count and size:
+
+![Collections](docs/screenshots/collections.png)
+
+Documents in a collection, sorted by `_id`, with a preview of each document. Compound keys are shown as JSON:
+
+![Documents](docs/screenshots/documents.png)
+
+A single document as highlighted JSON, with a tree view one click away:
+
+![Document](docs/screenshots/document.png)
+
 ## Requirements
 
 - PHP 8.1 or newer with the `mongodb` extension 1.16 or newer (`pecl install mongodb`)
