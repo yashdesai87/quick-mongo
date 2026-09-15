@@ -150,24 +150,6 @@ $(document).ready(function() {
         }
     });
 
-    // Confirm before leaving page with unsaved changes
-    // (header controls excluded: they persist immediately or navigate)
-    let hasChanges = false;
-    $('input, select, textarea').not('#tz-selector, #database-selector').on('change', function() {
-        hasChanges = true;
-    });
-
-    $(window).on('beforeunload', function() {
-        if (hasChanges) {
-            return 'You have unsaved changes. Are you sure you want to leave?';
-        }
-    });
-
-    // Reset hasChanges on form submit
-    $('form').on('submit', function() {
-        hasChanges = false;
-    });
-
     // Add active state to current page in sidebar
     const currentAction = new URLSearchParams(window.location.search).get('action');
     if (currentAction) {
@@ -280,30 +262,4 @@ function initTimezone() {
     });
 
     renderTimes();
-}
-
-// Helper function to format bytes
-function formatBytes(bytes, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-// Helper function to escape HTML
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }

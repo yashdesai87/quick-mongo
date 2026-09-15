@@ -13,9 +13,6 @@ class View
         // Extract data variables
         extract($data, EXTR_SKIP);
 
-        // Make Security class available in views
-        $Security = 'Security';
-
         // Start output buffering
         ob_start();
 
@@ -35,14 +32,6 @@ class View
     }
 
     /**
-     * Render a partial view
-     */
-    public static function partial($name, $data = [])
-    {
-        return self::render('partials/'.$name, $data);
-    }
-
-    /**
      * Render layout with content
      */
     public static function renderWithLayout($content, $data = [])
@@ -52,26 +41,6 @@ class View
 
         // Render the layout
         return self::render('layout', $data);
-    }
-
-    /**
-     * Render JSON response
-     */
-    public static function json($data, $statusCode = 200)
-    {
-        http_response_code($statusCode);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    /**
-     * Redirect to URL
-     */
-    public static function redirect($url, $statusCode = 302)
-    {
-        header("Location: $url", true, $statusCode);
-        exit;
     }
 
     /**
@@ -143,22 +112,6 @@ class View
     }
 
     /**
-     * Format JSON for display
-     */
-    public static function formatJson($data, $pretty = true)
-    {
-        if (is_string($data)) {
-            $data = json_decode($data, true);
-        }
-
-        if ($pretty) {
-            return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
-
-        return json_encode($data);
-    }
-
-    /**
      * Generate a relative URL with query parameters, so the app works from
      * any subdirectory
      */
@@ -177,14 +130,6 @@ class View
     }
 
     /**
-     * Check if current page matches
-     */
-    public static function isCurrentPage($action, $currentAction)
-    {
-        return $action === $currentAction;
-    }
-
-    /**
      * Create breadcrumb items
      */
     public static function breadcrumbs($items = [])
@@ -198,23 +143,5 @@ class View
         }
 
         return $breadcrumbs;
-    }
-
-    /**
-     * Display alert message
-     */
-    public static function alert($message, $type = 'info')
-    {
-        $types = [
-            'success' => 'alert-success',
-            'info' => 'alert-info',
-            'warning' => 'alert-warning',
-            'danger' => 'alert-danger',
-            'error' => 'alert-danger',
-        ];
-
-        $class = $types[$type] ?? 'alert-info';
-
-        return '<div class="alert '.$class.'">'.htmlspecialchars($message).'</div>';
     }
 }

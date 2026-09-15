@@ -9,8 +9,6 @@ class MongoClient
 
     private $client;
 
-    private $connected = false;
-
     private function __construct()
     {
         try {
@@ -20,8 +18,6 @@ class MongoClient
             // Test connection
             $command = new MongoDB\Driver\Command(['ping' => 1]);
             $this->client->executeCommand('admin', $command);
-
-            $this->connected = true;
         } catch (Exception $e) {
             error_log('MongoDB connection failed: '.$e->getMessage());
             throw new Exception('Unable to connect to MongoDB server');
@@ -151,13 +147,13 @@ class MongoClient
     /**
      * Get a single document by ID
      */
-    public function getDocument($database, $collection, $id, $convert = true)
+    public function getDocument($database, $collection, $id)
     {
         $query = new MongoDB\Driver\Query(['_id' => $this->toIdFilter($id)], ['limit' => 1]);
         $cursor = $this->client->executeQuery("$database.$collection", $query);
 
         foreach ($cursor as $document) {
-            return $convert ? $this->convertDocument($document) : $document;
+            return $this->convertDocument($document);
         }
 
         return null;
@@ -315,14 +311,6 @@ class MongoClient
         }
 
         return $value;
-    }
-
-    /**
-     * Check if connected
-     */
-    public function isConnected()
-    {
-        return $this->connected;
     }
 
     // Prevent cloning

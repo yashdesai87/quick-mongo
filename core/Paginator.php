@@ -37,14 +37,6 @@ class Paginator
     }
 
     /**
-     * Get offset for database query
-     */
-    public function getOffset()
-    {
-        return $this->offset;
-    }
-
-    /**
      * Get limit for database query
      */
     public function getLimit()
@@ -66,14 +58,6 @@ class Paginator
     public function getCurrentPage()
     {
         return $this->currentPage;
-    }
-
-    /**
-     * Get total items
-     */
-    public function getTotalItems()
-    {
-        return $this->totalItems;
     }
 
     /**
@@ -246,23 +230,5 @@ class Paginator
         $html .= '</nav>';
 
         return $html;
-    }
-
-    /**
-     * Get pagination data as array
-     */
-    public function toArray()
-    {
-        return [
-            'currentPage' => $this->currentPage,
-            'totalPages' => $this->totalPages,
-            'totalItems' => $this->totalItems,
-            'itemsPerPage' => $this->itemsPerPage,
-            'offset' => $this->offset,
-            'hasPrevious' => $this->hasPrevious(),
-            'hasNext' => $this->hasNext(),
-            'previousPage' => $this->getPreviousPage(),
-            'nextPage' => $this->getNextPage(),
-        ];
     }
 }

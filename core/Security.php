@@ -18,19 +18,6 @@ class Security
     }
 
     /**
-     * Validate MongoDB ObjectId
-     */
-    public static function validateMongoId($id)
-    {
-        // MongoDB ObjectId is 24 character hex string
-        if (! is_string($id) || strlen($id) !== 24) {
-            return false;
-        }
-
-        return preg_match('/^[a-f0-9]{24}$/i', $id) === 1;
-    }
-
-    /**
      * Validate database name
      */
     public static function validateDatabaseName($name)
@@ -139,28 +126,6 @@ class Security
     }
 
     /**
-     * Generate secure random token
-     */
-    public static function generateToken($length = 32)
-    {
-        return bin2hex(random_bytes($length / 2));
-    }
-
-    /**
-     * Clean and validate JSON string
-     */
-    public static function validateJson($jsonString)
-    {
-        if (! is_string($jsonString)) {
-            return false;
-        }
-
-        json_decode($jsonString);
-
-        return json_last_error() === JSON_ERROR_NONE;
-    }
-
-    /**
      * Sanitize filename
      */
     public static function sanitizeFilename($filename)
@@ -177,31 +142,6 @@ class Security
         }
 
         return $filename;
-    }
-
-    /**
-     * Check for common XSS patterns
-     */
-    public static function hasXssPattern($input)
-    {
-        $patterns = [
-            '/<script[^>]*>.*?<\/script>/is',
-            '/javascript:/i',
-            '/on\w+\s*=/i', // onclick, onload, etc.
-            '/<iframe/i',
-            '/<embed/i',
-            '/<object/i',
-            '/data:text\/html/i',
-            '/vbscript:/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $input)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -233,20 +173,5 @@ class Security
         }
 
         return true;
-    }
-
-    /**
-     * Validate referrer for CSRF protection
-     */
-    public static function validateReferrer()
-    {
-        if (! isset($_SERVER['HTTP_REFERER'])) {
-            return true; // Allow if no referrer (some browsers don't send it)
-        }
-
-        $referrer = parse_url($_SERVER['HTTP_REFERER']);
-        $current = parse_url('http://'.$_SERVER['HTTP_HOST']);
-
-        return $referrer['host'] === $current['host'];
     }
 }
