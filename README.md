@@ -35,7 +35,6 @@ A single document as highlighted JSON, with a tree view one click away:
 
 1. Copy `.env.example` to `.env` and set:
    - `MONGO_URI`: connection string, default `mongodb://localhost:27017`
-   - `MONGO_DB`: optional database to always list, even before it has data
    - `APP_DEBUG`: `true` shows exception details on error pages, keep it `false` anywhere shared
 
    Real environment variables with the same names override the file, so containers can skip `.env` entirely.
@@ -62,10 +61,9 @@ services:
       - "8081:80"
     environment:
       MONGO_URI: mongodb://mongo:27017
-      MONGO_DB: myapp
 ```
 
-`MONGO_URI` points at the Mongo service name on the compose network. `MONGO_DB` and `APP_DEBUG` are optional and mean the same as in `.env`.
+`MONGO_URI` points at the Mongo service name on the compose network. `APP_DEBUG` is optional and means the same as in `.env`.
 
 For a Mongo running on the host itself:
 

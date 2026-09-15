@@ -45,7 +45,6 @@ class MongoClient
         $cursor = $this->client->executeCommand('admin', $command);
 
         $databases = [];
-        $foundDatabases = [];
 
         foreach ($cursor as $document) {
             if (isset($document->databases)) {
@@ -57,19 +56,9 @@ class MongoClient
                             'sizeOnDisk' => $db->sizeOnDisk ?? 0,
                             'empty' => $db->empty ?? false,
                         ];
-                        $foundDatabases[] = $db->name;
                     }
                 }
             }
-        }
-
-        // Always include the default database even if it doesn't exist yet
-        if (! in_array(MONGO_DEFAULT_DB, $foundDatabases) && MONGO_DEFAULT_DB) {
-            $databases[] = [
-                'name' => MONGO_DEFAULT_DB,
-                'sizeOnDisk' => 0,
-                'empty' => true,
-            ];
         }
 
         // Sort by name

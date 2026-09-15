@@ -58,7 +58,7 @@ function loadEnvironment()
         }
     }
 
-    foreach (['MONGO_URI', 'MONGO_DB', 'APP_DEBUG'] as $key) {
+    foreach (['MONGO_URI', 'APP_DEBUG'] as $key) {
         $value = getenv($key);
         if ($value !== false) {
             $config[$key] = $value;
@@ -73,7 +73,6 @@ $env = loadEnvironment();
 
 // Store in constants
 define('MONGO_URI', $env['MONGO_URI'] ?? 'mongodb://localhost:27017');
-define('MONGO_DEFAULT_DB', $env['MONGO_DB'] ?? '');
 define('APP_DEBUG', ($env['APP_DEBUG'] ?? 'false') === 'true');
 
 // Session (used by the rate limiter)
