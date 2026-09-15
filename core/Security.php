@@ -69,12 +69,13 @@ class Security
             return false;
         }
 
-        // Cannot contain '$' unless it's a special collection
-        if (strpos($name, '$') !== false && strpos($name, 'oplog.$') !== 0) {
+        // Cannot contain '$'
+        if (strpos($name, '$') !== false) {
             return false;
         }
 
-        if ($name === '.') {
+        // Cannot start or end with a dot
+        if (str_starts_with($name, '.') || str_ends_with($name, '.')) {
             return false;
         }
 
