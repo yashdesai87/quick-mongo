@@ -42,7 +42,9 @@
             if (! function_exists('renderJsonTree')) {
                 function renderJsonTree($data, $level = 0)
                 {
-                    if ($level > 20) {
+                    // MongoDB allows 100 levels of nesting; this only has to stop
+                    // runaway recursion, so it sits above anything realistic
+                    if ($level > 50) {
                         echo '<ul class="json-tree"><li><span class="text-muted">[Max depth reached]</span></li></ul>';
 
                         return;
