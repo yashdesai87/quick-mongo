@@ -32,8 +32,22 @@
                     <?php foreach ($rows as $row) { ?>
                         <?php
                         $doc = $row['document'];
-                        $preview = clone $doc;
-                        unset($preview->_id);
+                        $preview = new stdClass();
+                        $fieldCount = 0;
+                        foreach ($doc as $key => $val) {
+                            if ($key === '_id') {
+                                continue;
+                            }
+                            if ($fieldCount++ >= 10) {
+                                $preview->{'_more'} = '...';
+                                break;
+                            }
+                            if (is_string($val) && strlen($val) > 200) {
+                                $preview->$key = substr($val, 0, 200).'...';
+                            } else {
+                                $preview->$key = $val;
+                            }
+                        }
                         ?>
                         <tr>
                             <td><code><?php echo Security::escape(View::documentId($doc->_id ?? null)); ?></code></td>
