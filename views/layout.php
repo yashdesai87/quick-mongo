@@ -53,7 +53,7 @@
                     </div>
                 </div>
 
-                <?php if (! empty($currentDatabase)) { ?>
+                <?php if (($currentDatabase ?? '') !== '') { ?>
                 <div class="sidebar-section">
                     <h4 class="sidebar-subtitle">Current Database</h4>
                     <div class="current-db-info">

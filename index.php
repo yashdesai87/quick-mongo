@@ -14,8 +14,8 @@ try {
         View::error('Too many requests. Please try again later.', 429);
     }
 
-    // Get and sanitize action
-    $action = Security::sanitize($_GET['action'] ?? 'databases');
+    // Get and validate action
+    $action = Security::param($_GET['action'] ?? 'databases');
     $validActions = ['databases', 'collections', 'documents', 'document', 'download'];
 
     if (! in_array($action, $validActions)) {
@@ -47,7 +47,7 @@ try {
 
         case 'collections':
             // Get and validate database name
-            $database = Security::sanitize($_GET['db'] ?? '');
+            $database = Security::param($_GET['db'] ?? '');
 
             if (! Security::validateDatabaseName($database)) {
                 View::error('Invalid database name', 400);
@@ -78,8 +78,8 @@ try {
 
         case 'documents':
             // Get and validate parameters
-            $database = Security::sanitize($_GET['db'] ?? '');
-            $collection = Security::sanitize($_GET['collection'] ?? '');
+            $database = Security::param($_GET['db'] ?? '');
+            $collection = Security::param($_GET['collection'] ?? '');
             $page = Security::validatePageNumber($_GET['page'] ?? 1);
             $sortOrder = ($_GET['sort'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
@@ -119,9 +119,9 @@ try {
         case 'document':
             // Get and validate parameters. The id is extended JSON from
             // MongoClient::idToParam(), so it is escaped at output, not sanitized here.
-            $database = Security::sanitize($_GET['db'] ?? '');
-            $collection = Security::sanitize($_GET['collection'] ?? '');
-            $id = trim($_GET['id'] ?? '');
+            $database = Security::param($_GET['db'] ?? '');
+            $collection = Security::param($_GET['collection'] ?? '');
+            $id = Security::param($_GET['id'] ?? '');
 
             if (! Security::validateDatabaseName($database)) {
                 View::error('Invalid database name', 400);
@@ -163,9 +163,9 @@ try {
 
         case 'download':
             // Stream a GridFS file: the collection must be a <bucket>.files collection
-            $database = Security::sanitize($_GET['db'] ?? '');
-            $collection = Security::sanitize($_GET['collection'] ?? '');
-            $id = trim($_GET['id'] ?? '');
+            $database = Security::param($_GET['db'] ?? '');
+            $collection = Security::param($_GET['collection'] ?? '');
+            $id = Security::param($_GET['id'] ?? '');
 
             if (! Security::validateDatabaseName($database)) {
                 View::error('Invalid database name', 400);
@@ -218,7 +218,7 @@ try {
 
     // Get list of all databases for sidebar
     $allDatabases = $mongo->listDatabases();
-    $currentDatabase = Security::sanitize($_GET['db'] ?? '') ?: null;
+    $currentDatabase = Security::param($_GET['db'] ?? '');
 
     // Render with layout
     echo View::renderWithLayout($content, [

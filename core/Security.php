@@ -6,27 +6,15 @@
 class Security
 {
     /**
-     * Sanitize user input
+     * Read a request parameter as a trimmed string.
+     *
+     * Nothing is encoded here. Database names, collection names and ids are
+     * addresses sent to MongoDB verbatim; encoding belongs at output, where
+     * escape() does it.
      */
-    public static function sanitize($input)
+    public static function param($value)
     {
-        if (is_array($input)) {
-            return array_map([self::class, 'sanitize'], $input);
-        }
-
-        // Remove PHP and HTML tags
-        $input = strip_tags($input);
-
-        // Convert special characters to HTML entities
-        $input = htmlspecialchars($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-        // Remove any null bytes
-        $input = str_replace(chr(0), '', $input);
-
-        // Trim whitespace
-        $input = trim($input);
-
-        return $input;
+        return is_string($value) ? trim($value) : '';
     }
 
     /**
@@ -47,7 +35,7 @@ class Security
      */
     public static function validateDatabaseName($name)
     {
-        if (empty($name) || ! is_string($name)) {
+        if (! is_string($name) || $name === '') {
             return false;
         }
 
@@ -66,11 +54,6 @@ class Security
             }
         }
 
-        // Cannot be empty string
-        if ($name === '') {
-            return false;
-        }
-
         // System databases that should not be accessed
         $systemDbs = ['admin', 'config', 'local'];
         if (in_array(strtolower($name), $systemDbs)) {
@@ -85,7 +68,7 @@ class Security
      */
     public static function validateCollectionName($name)
     {
-        if (empty($name) || ! is_string($name)) {
+        if (! is_string($name) || $name === '') {
             return false;
         }
 
@@ -104,8 +87,7 @@ class Security
             return false;
         }
 
-        // Cannot be empty
-        if ($name === '' || $name === '.') {
+        if ($name === '.') {
             return false;
         }
 
@@ -159,20 +141,6 @@ class Security
     public static function generateToken($length = 32)
     {
         return bin2hex(random_bytes($length / 2));
-    }
-
-    /**
-     * Validate URL parameter
-     */
-    public static function validateUrlParam($param, $allowedValues = [])
-    {
-        $param = self::sanitize($param);
-
-        if (! empty($allowedValues) && ! in_array($param, $allowedValues)) {
-            return false;
-        }
-
-        return $param;
     }
 
     /**
