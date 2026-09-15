@@ -33,13 +33,14 @@
                         <?php
                         $doc = $row['document'];
                         $preview = new stdClass();
+                        $omitted = false;
                         $fieldCount = 0;
                         foreach ($doc as $key => $val) {
                             if ($key === '_id') {
                                 continue;
                             }
                             if ($fieldCount++ >= 10) {
-                                $preview->{'_more'} = '...';
+                                $omitted = true;
                                 break;
                             }
                             if (is_string($val) && strlen($val) > 200) {
@@ -48,10 +49,18 @@
                                 $preview->$key = $val;
                             }
                         }
+
+                        // JSON_INVALID_UTF8_SUBSTITUTE: the 200 byte cut above can land
+                        // inside a character, and json_encode() answers malformed UTF-8
+                        // by returning false for the whole document, blanking the cell
+                        $previewJson = json_encode($preview, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+                        if ($omitted) {
+                            $previewJson .= ' ...';
+                        }
                         ?>
                         <tr>
                             <td><code><?php echo Security::escape(View::documentId($doc->_id ?? null)); ?></code></td>
-                            <td><?php echo Security::escape(View::truncate(json_encode($preview, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 160)); ?></td>
+                            <td><?php echo Security::escape(View::truncate($previewJson, 160)); ?></td>
                             <td>
                                 <a href="?action=document&db=<?php echo urlencode($database); ?>&collection=<?php echo urlencode($collection); ?>&id=<?php echo urlencode($row['id']); ?>"
                                    class="btn btn-sm btn-primary">
