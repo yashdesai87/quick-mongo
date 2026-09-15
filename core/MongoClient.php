@@ -296,6 +296,11 @@ class MongoClient
         if ($value instanceof MongoDB\BSON\Timestamp) {
             return (string) $value;
         }
+        // json_encode() refuses INF and NAN and returns false for the whole
+        // document, which blanks the preview and the JSON view
+        if (is_float($value) && ! is_finite($value)) {
+            return (string) $value;
+        }
         if (is_object($value) || is_array($value)) {
             $result = [];
             foreach ($value as $key => $item) {
