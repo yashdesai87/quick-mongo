@@ -7,7 +7,8 @@
     <div class="card-body">
         <?php if (empty($databases)) { ?>
             <div class="alert alert-info">
-                No databases found. Make sure MongoDB is running and accessible.
+                No databases to show. The server is reachable and holds nothing
+                but the system databases, which are not listed.
             </div>
         <?php } else { ?>
             <table class="table">
