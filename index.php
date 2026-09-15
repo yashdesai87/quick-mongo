@@ -142,7 +142,7 @@ try {
                 View::error('Document not found', 404);
             }
 
-            $documentId = View::documentId($document['_id'] ?? null);
+            $documentId = View::documentId($document->_id ?? null);
 
             $pageTitle = "Document: $documentId";
             $breadcrumbs = View::breadcrumbs([

@@ -32,11 +32,11 @@
                     <?php foreach ($rows as $row) { ?>
                         <?php
                         $doc = $row['document'];
-                        $preview = $doc;
-                        unset($preview['_id']);
+                        $preview = clone $doc;
+                        unset($preview->_id);
                         ?>
                         <tr>
-                            <td><code><?php echo Security::escape(View::documentId($doc['_id'] ?? null)); ?></code></td>
+                            <td><code><?php echo Security::escape(View::documentId($doc->_id ?? null)); ?></code></td>
                             <td><?php echo Security::escape(View::truncate(json_encode($preview, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 160)); ?></td>
                             <td>
                                 <a href="?action=document&db=<?php echo urlencode($database); ?>&collection=<?php echo urlencode($collection); ?>&id=<?php echo urlencode($row['id']); ?>"

@@ -307,7 +307,11 @@ class MongoClient
                 $result[$key] = $this->convertValue($item);
             }
 
-            return $result;
+            // The driver hands documents back as objects and BSON arrays as
+            // arrays. Keeping them apart is what lets an empty document render
+            // as {} rather than [], and stops a document whose keys happen to
+            // be 0 and 1 from being displayed as a list.
+            return is_object($value) ? (object) $result : $result;
         }
 
         return $value;
