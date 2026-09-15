@@ -81,7 +81,7 @@ On Linux add `--add-host=host.docker.internal:host-gateway` so that hostname res
 - 100 requests per minute per session.
 - There is no authentication built in. Put it behind HTTP basic auth, a VPN or a firewall before exposing anything other than a local development database.
 
-jQuery and Prism load from public CDNs; every other asset is local.
+jQuery and Prism load from public CDNs, pinned to exact versions with subresource integrity hashes, so a modified file is refused rather than run. Every other asset is local. Somewhere with no route to those CDNs the page still renders and every value is readable, but the parts built on jQuery stop working: the database selector, the tree view toggles and the timezone control.
 
 ## Building the image
 
