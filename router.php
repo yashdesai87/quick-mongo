@@ -11,7 +11,7 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
 // A dot segment anywhere, not just a leading one, so .git/config and a
 // dotfile dropped inside assets/ are both refused
-if (preg_match('#(^|/)\.#', $path) || preg_match('#^/(config|core|views)(/|$)#', $path)) {
+if (preg_match('#(^|/)\.#', $path) || preg_match('#^/+(config|core|views)(/|$)#', $path)) {
     http_response_code(403);
     exit('Forbidden');
 }

@@ -141,6 +141,11 @@ class Security
         // Remove special characters
         $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
 
+        // Avoid filenames consisting only of dots
+        if ($filename === '.' || $filename === '..') {
+            return '';
+        }
+
         // Limit length
         if (strlen($filename) > 255) {
             $filename = substr($filename, 0, 255);
