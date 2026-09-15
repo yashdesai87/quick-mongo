@@ -2,13 +2,17 @@
 
 RewriteEngine On
 
+# Never serve dotfiles or anything inside a dot directory, .env and .git included.
+# ACME challenges stay reachable so certificate renewal keeps working.
+RewriteCond %{REQUEST_URI} !(^|/)\.well-known/
+RewriteRule (^|/)\. - [F,L]
+
 # Never serve application internals directly
 RewriteRule ^(config|core|views)(/|$) - [F,L]
 
-# Route everything that is not a real file or directory to index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
+# Only assets and ACME challenges come off the disk; the rest is the front controller
+RewriteRule ^(assets/|\.well-known/|index\.php$) - [L]
+RewriteRule ^ index.php [QSA,L]
 
 # Security Headers
 <IfModule mod_headers.c>
@@ -31,20 +35,6 @@ RewriteRule ^(.*)$ index.php [QSA,L]
 
 # Disable directory browsing
 Options -Indexes
-
-# Protect configuration and documentation files
-<FilesMatch "\.(env|json|lock|md|yml|yaml|xml|log)$">
-    Require all denied
-</FilesMatch>
-
-# Block access to hidden files (except .htaccess)
-<FilesMatch "^\.">
-    Require all denied
-</FilesMatch>
-
-<Files .htaccess>
-    Require all granted
-</Files>
 
 # Compression
 <IfModule mod_deflate.c>
