@@ -198,6 +198,10 @@ try {
                 $filename = Security::sanitizeFilename(json_encode($fileDoc->_id)) ?: 'download';
             }
 
+            // Release the session lock: a large file takes as long as it takes,
+            // and holding it blocks every other request from the same browser
+            session_write_close();
+
             // Send chunks straight to the client; GridFS files can exceed PHP memory
             while (ob_get_level() > 0) {
                 ob_end_flush();
