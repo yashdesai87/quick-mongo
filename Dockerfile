@@ -10,7 +10,9 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 RUN install-php-extensions mongodb \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && a2enmod rewrite headers expires \
-    && printf '<Directory /var/www/html>\n    AllowOverride All\n</Directory>\n' > /etc/apache2/conf-available/quick-mongo.conf \
+    && printf '<Directory /var/www/html>\n    AllowOverride All\n</Directory>\nServerTokens Prod\nServerSignature Off\n' > /etc/apache2/conf-available/quick-mongo.conf \
+    && sed -i 's/^expose_php = On/expose_php = Off/' "$PHP_INI_DIR/php.ini" \
     && a2enconf quick-mongo
+
 
 COPY . /var/www/html/
