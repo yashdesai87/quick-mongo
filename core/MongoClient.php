@@ -44,7 +44,13 @@ class MongoClient
         $databases = [];
 
         try {
-            $command = new MongoDB\Driver\Command(['listDatabases' => 1]);
+            // authorizedDatabases: a user without the cluster-wide listDatabases
+            // privilege still gets back the databases it can actually read,
+            // which is the least-privilege setup the README recommends
+            $command = new MongoDB\Driver\Command([
+                'listDatabases' => 1,
+                'authorizedDatabases' => true,
+            ]);
             $cursor = $this->client->executeCommand('admin', $command);
 
             foreach ($cursor as $document) {

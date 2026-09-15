@@ -7,8 +7,11 @@
     <div class="card-body">
         <?php if (empty($databases)) { ?>
             <div class="alert alert-info">
-                No databases to show. The server is reachable and holds nothing
-                but the system databases, which are not listed.
+                No databases to show. The server is reachable, so either it holds
+                nothing outside the system databases, which are not listed, or
+                this MongoDB user is not allowed to list them. A user without
+                that privilege can still open one directly by adding
+                <code>?action=collections&amp;db=NAME</code> to the URL.
             </div>
         <?php } else { ?>
             <table class="table">
