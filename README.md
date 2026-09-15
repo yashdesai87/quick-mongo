@@ -113,21 +113,6 @@ Links to a single document carry the `_id` as canonical extended JSON, which is 
 
 jQuery and Prism load from public CDNs, pinned to exact versions with subresource integrity hashes, so a modified file is refused rather than run. Every other asset is local. Somewhere with no route to those CDNs the page still renders and every value is readable, but the parts built on jQuery stop working: the database selector, the tree view toggles and the timezone control.
 
-## Building the image
-
-Multi-platform pushes need a `docker-container` builder, created once:
-
-```
-docker buildx create --name quick-mongo --driver docker-container --use
-```
-
-Each release is one build that pushes both platforms under a version tag and `latest`:
-
-```
-docker buildx build --builder quick-mongo --platform linux/amd64,linux/arm64 \
-  -t codeboxindia/quick-mongo:<version> -t codeboxindia/quick-mongo:latest --push .
-```
-
 ## License
 
 Apache License 2.0. See `LICENSE`.
