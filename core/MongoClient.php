@@ -241,20 +241,18 @@ class MongoClient
     /**
      * Build an _id filter value: the inverse of idToParam(). Hand-typed ids
      * fall back to ObjectId when valid, raw string otherwise.
+     *
+     * The value is always compared with $eq by the callers, so a value that
+     * happens to look like a query operator is matched literally and finds
+     * nothing, rather than being executed as an operator.
      */
     private function toIdFilter($id)
     {
         try {
             $document = MongoDB\BSON\Document::fromJSON($id);
             if ($document->has('_id')) {
-                $val = $document->get('_id');
-                if ($this->hasOperatorKeys($val)) {
-                    throw new InvalidArgumentException('Invalid _id filter: query operators not allowed');
-                }
-                return $val;
+                return $document->get('_id');
             }
-        } catch (InvalidArgumentException $e) {
-            throw $e;
         } catch (Exception $e) {
             // Not extended JSON produced by idToParam()
         }
@@ -264,25 +262,6 @@ class MongoClient
         } catch (Exception $e) {
             return $id;
         }
-    }
-
-    /**
-     * Check recursively whether a decoded BSON value contains keys starting with '$'
-     */
-    private function hasOperatorKeys($value)
-    {
-        if ($value instanceof MongoDB\BSON\Document || is_object($value) || is_array($value)) {
-            foreach ($value as $k => $v) {
-                if (is_string($k) && str_starts_with($k, '$')) {
-                    return true;
-                }
-                if ($this->hasOperatorKeys($v)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
