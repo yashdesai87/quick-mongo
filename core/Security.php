@@ -143,35 +143,5 @@ class Security
 
         return $filename;
     }
-
-    /**
-     * Rate limiting check (basic implementation)
-     */
-    public static function checkRateLimit($identifier, $maxAttempts = 100, $window = 60)
-    {
-        $key = 'rate_limit_'.md5($identifier);
-
-        if (! isset($_SESSION[$key])) {
-            $_SESSION[$key] = [
-                'count' => 0,
-                'window_start' => time(),
-            ];
-        }
-
-        $data = &$_SESSION[$key];
-
-        // Reset window if expired
-        if (time() - $data['window_start'] > $window) {
-            $data['count'] = 0;
-            $data['window_start'] = time();
-        }
-
-        $data['count']++;
-
-        if ($data['count'] > $maxAttempts) {
-            return false; // Rate limit exceeded
-        }
-
-        return true;
-    }
 }
+

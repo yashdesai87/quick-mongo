@@ -8,11 +8,6 @@
 require_once __DIR__.'/config/bootstrap.php';
 
 try {
-    // Check rate limiting
-    $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    if (! Security::checkRateLimit($clientIp, 100, 60)) {
-        View::error('Too many requests. Please try again later.', 429);
-    }
 
     // Get and validate action
     $action = Security::param($_GET['action'] ?? 'databases');
@@ -199,9 +194,6 @@ try {
                 $filename = Security::sanitizeFilename(json_encode($fileDoc->_id)) ?: 'download';
             }
 
-            // Release the session lock: a large file takes as long as it takes,
-            // and holding it blocks every other request from the same browser
-            session_write_close();
 
             // Send chunks straight to the client; GridFS files can exceed PHP memory
             while (ob_get_level() > 0) {
