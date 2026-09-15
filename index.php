@@ -193,7 +193,8 @@ try {
                 $contentType = 'application/octet-stream';
             }
 
-            $filename = Security::sanitizeFilename($fileDoc->filename ?? '');
+            $storedName = is_string($fileDoc->filename ?? null) ? basename($fileDoc->filename) : '';
+            $filename = Security::sanitizeFilename($storedName);
             if ($filename === '') {
                 $filename = Security::sanitizeFilename(json_encode($fileDoc->_id)) ?: 'download';
             }
@@ -211,7 +212,14 @@ try {
             if (isset($fileDoc->length)) {
                 header('Content-Length: '.(int) $fileDoc->length);
             }
-            header('Content-Disposition: attachment; filename="'.$filename.'"');
+            // filename carries the ASCII fallback, filename* the name as stored.
+            // rawurlencode() is also what keeps a stored name containing quotes
+            // or newlines from breaking out of the header.
+            $disposition = 'attachment; filename="'.$filename.'"';
+            if ($storedName !== '' && $storedName !== $filename) {
+                $disposition .= "; filename*=UTF-8''".rawurlencode($storedName);
+            }
+            header('Content-Disposition: '.$disposition);
 
             foreach ($file['chunks'] as $chunk) {
                 echo $chunk->data->getData();
