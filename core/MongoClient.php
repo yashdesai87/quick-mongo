@@ -138,7 +138,8 @@ class MongoClient
      */
     public function getDocument($database, $collection, $id)
     {
-        $query = new MongoDB\Driver\Query(['_id' => $this->toIdFilter($id)], ['limit' => 1]);
+        $idFilter = $this->toIdFilter($id);
+        $query = new MongoDB\Driver\Query(['_id' => ['$eq' => $idFilter]], ['limit' => 1]);
         $cursor = $this->client->executeQuery("$database.$collection", $query);
 
         foreach ($cursor as $document) {
@@ -176,7 +177,7 @@ class MongoClient
     {
         $id = $this->toIdFilter($fileId);
 
-        $query = new MongoDB\Driver\Query(['_id' => $id], ['limit' => 1]);
+        $query = new MongoDB\Driver\Query(['_id' => ['$eq' => $id]], ['limit' => 1]);
         $cursor = $this->client->executeQuery("$database.$bucket.files", $query);
         $file = null;
         foreach ($cursor as $doc) {
@@ -187,7 +188,7 @@ class MongoClient
             return null;
         }
 
-        $chunksQuery = new MongoDB\Driver\Query(['files_id' => $id], ['sort' => ['n' => 1]]);
+        $chunksQuery = new MongoDB\Driver\Query(['files_id' => ['$eq' => $id]], ['sort' => ['n' => 1]]);
         $chunks = $this->client->executeQuery("$database.$bucket.chunks", $chunksQuery);
 
         return ['file' => $file, 'chunks' => $chunks];
@@ -240,8 +241,14 @@ class MongoClient
         try {
             $document = MongoDB\BSON\Document::fromJSON($id);
             if ($document->has('_id')) {
-                return $document->get('_id');
+                $val = $document->get('_id');
+                if ($this->hasOperatorKeys($val)) {
+                    throw new InvalidArgumentException('Invalid _id filter: query operators not allowed');
+                }
+                return $val;
             }
+        } catch (InvalidArgumentException $e) {
+            throw $e;
         } catch (Exception $e) {
             // Not extended JSON produced by idToParam()
         }
@@ -251,6 +258,25 @@ class MongoClient
         } catch (Exception $e) {
             return $id;
         }
+    }
+
+    /**
+     * Check recursively whether a decoded BSON value contains keys starting with '$'
+     */
+    private function hasOperatorKeys($value)
+    {
+        if ($value instanceof MongoDB\BSON\Document || is_object($value) || is_array($value)) {
+            foreach ($value as $k => $v) {
+                if (is_string($k) && str_starts_with($k, '$')) {
+                    return true;
+                }
+                if ($this->hasOperatorKeys($v)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
