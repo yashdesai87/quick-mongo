@@ -103,13 +103,14 @@ That conversion is why the timezone picker in the header reaches only one value,
 
 Links to a single document carry the `_id` as canonical extended JSON, which is why they look like `?action=document&db=shop&collection=orders&id={"_id":{"$oid":"..."}}`. Nothing else survives every id type: ObjectId, integers, strings, binary and compound keys all round trip exactly. Typing an id by hand works as well. A 24 character hex string is read as an ObjectId and anything else as a plain string, so a numeric `_id` needs the full form, `id={"_id":42}`.
 
-## Security
+## Security & Deployment Requirements
 
-- Read-only by design: the code issues only list, find, count and collStats commands. There is no write, update or delete path.
-- Actions are whitelisted; database and collection names are validated before they reach the driver.
-- Every value is HTML-escaped on output.
-- A cap of 100 requests per minute per session. The counter lives in the session, so it takes the edge off a runaway tab; it is not a defence against anyone willing to drop a cookie.
-- There is no authentication built in. Put it behind HTTP basic auth, a VPN or a firewall before exposing anything other than a local development database.
+- **Read-only by design**: The application issues only list, find, count and collStats commands. There is no write, update, delete or command execution path.
+- **Strict input validation**: Actions are whitelisted; database and collection names are validated before reaching the driver; document lookups enforce literal equality (`$eq`) and reject query operators.
+- **Output escaping**: Every value from the database and the query string is HTML-escaped on output.
+- **Stateless**: Quick Mongo creates no server-side sessions and sets no cookies, avoiding session locking and session-exhaustion vectors.
+- **No built-in authentication**: Quick Mongo contains no login mechanism. **Never expose this tool directly to the public internet.** Place it behind an authentication layer (HTTP Basic Auth, an authenticating reverse proxy like OAuth2-Proxy or Cloudflare Access, a VPN, or an SSH tunnel).
+- **Least-privilege credentials**: Use a MongoDB user with read-only permissions (`read` or `readAnyDatabase` roles) rather than administrative credentials.
 
 jQuery and Prism load from public CDNs, pinned to exact versions with subresource integrity hashes, so a modified file is refused rather than run. Every other asset is local. Somewhere with no route to those CDNs the page still renders and every value is readable, but the parts built on jQuery stop working: the database selector, the tree view toggles and the timezone control.
 
