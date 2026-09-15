@@ -229,6 +229,9 @@ try {
     // Get list of all databases for sidebar
     $allDatabases = ($action === 'databases' && isset($databases)) ? $databases : $mongo->listDatabases();
     $currentDatabase = Security::param($_GET['db'] ?? '');
+    if (! Security::validateDatabaseName($currentDatabase)) {
+        $currentDatabase = '';
+    }
 
     // Render with layout
     echo View::renderWithLayout($content, [
