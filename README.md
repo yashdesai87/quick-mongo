@@ -9,7 +9,7 @@ A read-only MongoDB browser in a single PHP folder. No Composer, no build step: 
 - Pages through the documents of any collection, sorted by `_id` ascending or descending
 - Shows a document as highlighted JSON or as a collapsible tree
 - Downloads files from any GridFS bucket (open a document in a `*.files` collection)
-- Renders timestamps in a timezone picked in the header (defaults to the browser timezone)
+- Shows the GridFS upload time in a timezone picked in the header (defaults to the browser timezone)
 
 ## Screenshots
 
@@ -24,6 +24,14 @@ Documents in a collection, sorted by `_id`, with a preview of each document. Com
 A single document as highlighted JSON, with a tree view one click away:
 
 ![Document](docs/screenshots/document.png)
+
+## What you are looking at
+
+Documents are converted before they are displayed, which buys readability at the cost of some precision. ObjectId, `Decimal128`, `Int64`, `Timestamp` and regular expressions all arrive as strings and binary fields as base64, so a 24 character hex string and a real ObjectId look identical on the page. Dates are converted to UTC and rendered as `Y-m-d H:i:s`. Embedded documents and arrays keep their shapes, so `{}` and `[]` stay distinguishable.
+
+That conversion is why the timezone picker in the header reaches only one value, the GridFS upload time, which is the single timestamp the app formats for itself. Dates inside a document are already UTC text by the time the page is built.
+
+Links to a single document carry the `_id` as canonical extended JSON, which is why they look like `?action=document&db=shop&collection=orders&id={"_id":{"$oid":"..."}}`. Nothing else survives every id type: ObjectId, integers, strings, binary and compound keys all round trip exactly. Typing an id by hand works as well. A 24 character hex string is read as an ObjectId and anything else as a plain string, so a numeric `_id` needs the full form, `id={"_id":42}`.
 
 ## Requirements
 
@@ -129,7 +137,7 @@ On Linux add `--add-host=host.docker.internal:host-gateway` so that hostname res
 - Read-only by design: the code issues only list, find, count and collStats commands. There is no write, update or delete path.
 - Actions are whitelisted; database and collection names are validated before they reach the driver.
 - Every value is HTML-escaped on output.
-- 100 requests per minute per session.
+- A cap of 100 requests per minute per session. The counter lives in the session, so it takes the edge off a runaway tab; it is not a defence against anyone willing to drop a cookie.
 - There is no authentication built in. Put it behind HTTP basic auth, a VPN or a firewall before exposing anything other than a local development database.
 
 jQuery and Prism load from public CDNs, pinned to exact versions with subresource integrity hashes, so a modified file is refused rather than run. Every other asset is local. Somewhere with no route to those CDNs the page still renders and every value is readable, but the parts built on jQuery stop working: the database selector, the tree view toggles and the timezone control.
