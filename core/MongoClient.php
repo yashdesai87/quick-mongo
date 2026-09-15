@@ -138,8 +138,9 @@ class MongoClient
 
         $rows = [];
         foreach ($cursor as $document) {
+            // A view can project _id away, so it is not guaranteed to be there
             $rows[] = [
-                'id' => $this->idToParam($document->_id),
+                'id' => $this->idToParam($document->_id ?? null),
                 'document' => $this->convertDocument($document),
             ];
         }
