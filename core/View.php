@@ -137,19 +137,22 @@ class View
     }
 
     /**
-     * Truncate string
+     * Truncate a string to a length in bytes.
+     *
+     * The cut lands mid-word on purpose. Document previews are base64 and JSON
+     * at least as often as prose, and wrapping on whitespace left any value
+     * without a space in it at its full length. Security::escape() replaces a
+     * UTF-8 sequence cut in half rather than dropping the whole string.
      */
     public static function truncate($string, $length = 100, $append = '...')
     {
         $string = trim($string);
 
-        if (strlen($string) > $length) {
-            $string = wordwrap($string, $length);
-            $string = explode("\n", $string, 2);
-            $string = $string[0].$append;
+        if (strlen($string) <= $length) {
+            return $string;
         }
 
-        return $string;
+        return substr($string, 0, $length).$append;
     }
 
     /**

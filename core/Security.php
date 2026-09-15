@@ -109,7 +109,10 @@ class Security
             return array_map([self::class, 'escape'], (array) $output);
         }
 
-        return htmlspecialchars($output, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // ENT_SUBSTITUTE: a byte sequence cut in half by truncation is
+        // replaced, where the default would return an empty string and lose
+        // the whole value
+        return htmlspecialchars($output, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     /**
