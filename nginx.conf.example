@@ -1,0 +1,41 @@
+# Quick Mongo - nginx server block
+#
+# nginx has no per-directory configuration, so it cannot read the .htaccess
+# that sits next to this file. This is that same policy written for nginx:
+# assets are served from disk, dotfiles and application internals are refused,
+# and everything else goes through index.php.
+#
+# Copy this into your nginx configuration (sites-available on Debian and
+# Ubuntu, conf.d elsewhere), set server_name, root and fastcgi_pass below,
+# then reload nginx.
+#
+# If you configure the app with environment variables rather than a .env file,
+# note that php-fpm pools default to clear_env = yes, so the variables have to
+# be set in the pool config with env[MONGO_URI] = ... to reach PHP.
+
+server {
+    listen 80;
+    server_name mongo.example.com;
+
+    # The folder holding index.php
+    root /var/www/quick-mongo;
+
+    # Certificate renewal: ^~ wins over the dotfile regex below
+    location ^~ /.well-known/ { }
+
+    # Assets are the only thing served from disk
+    location ^~ /assets/ { try_files $uri =404; }
+
+    # Application internals and dotfiles are never served
+    location ~ ^/(config|core|views)(/|$) { return 403; }
+    location ~ /\.                        { return 403; }
+
+    # Everything else is the front controller
+    location / { rewrite ^ /index.php last; }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+    }
+}

@@ -6,4 +6,5 @@
 Dockerfile
 README.md
 router.php
+nginx.conf.example
 docs

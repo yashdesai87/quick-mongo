@@ -91,36 +91,9 @@ php -S localhost:8080 router.php
 
 ### nginx with php-fpm
 
-There is no `.htaccess` to fall back on, so the server block carries the same policy: serve `assets/`, refuse dotfiles and internals, send everything else to `index.php`.
+`nginx.conf.example` in this folder is a ready server block: it serves `assets/` from disk, refuses dotfiles and application internals, and sends everything else to `index.php`. Copy it into your nginx configuration, set `server_name`, `root` and `fastcgi_pass`, then reload nginx.
 
-```nginx
-server {
-    listen 80;
-    server_name mongo.example.com;
-    root /var/www/quick-mongo;
-
-    # Certificate renewal: ^~ wins over the dotfile regex below
-    location ^~ /.well-known/ { }
-
-    # Assets are the only thing served from disk
-    location ^~ /assets/ { try_files $uri =404; }
-
-    # Application internals and dotfiles are never served
-    location ~ ^/(config|core|views)(/|$) { return 403; }
-    location ~ /\.                        { return 403; }
-
-    # Everything else is the front controller
-    location / { rewrite ^ /index.php last; }
-
-    location = /index.php {
-        include fastcgi_params;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
-    }
-}
-```
-
-To run it under a subdirectory instead, put the same four `location` blocks under that prefix and set `root` so the prefix resolves into the folder.
+To run it under a subdirectory instead, put the same `location` blocks under that prefix and set `root` so the prefix resolves into the folder.
 
 ## What you are looking at
 
