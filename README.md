@@ -56,7 +56,7 @@ On Linux add `--add-host=host.docker.internal:host-gateway` so that hostname res
 
 Copy the folder into a web root. It never has to sit at the document root and never has to be writable, so a copy at `/tools/quick-mongo/` works as it stands, because every link, asset and form in it is relative.
 
-You need PHP 8.1 or newer with the `mongodb` extension 1.16 or newer (`pecl install mongodb`), a MongoDB server the PHP driver can reach, and one of Apache 2.4 with `mod_rewrite`, nginx with php-fpm, or PHP's built-in server for local use.
+You need PHP 8.1 or newer with the `mongodb` extension 1.16 or newer (`pecl install mongodb`), a MongoDB server the PHP driver can reach, and one of Apache 2.4 with `mod_rewrite`, nginx with php-fpm, or PHP's built-in server for local use. MongoDB 4.0.5 or newer, because the database list is requested with `authorizedDatabases` so that a user scoped to one database still sees it.
 
 ### Configuration, if you need any
 
@@ -103,7 +103,7 @@ That conversion is why the timezone picker in the header reaches only one value,
 
 Links to a single document carry the `_id` as canonical extended JSON, which is why they look like `?action=document&db=shop&collection=orders&id={"_id":{"$oid":"..."}}`. Nothing else survives every id type: ObjectId, integers, strings, binary and compound keys all round trip exactly. Typing an id by hand works as well. A 24 character hex string is read as an ObjectId and anything else as a plain string, so a numeric `_id` needs the full form, `id={"_id":42}`.
 
-## Security & Deployment Requirements
+## Security and deployment
 
 - **Read-only by design**: The application issues only list, find, count and collStats commands. There is no write, update, delete or command execution path.
 - **Strict input validation**: Actions are whitelisted; database and collection names are validated before reaching the driver; document lookups enforce literal equality (`$eq`) and reject query operators.
