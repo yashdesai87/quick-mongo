@@ -1,4 +1,6 @@
 .git
+.claude
+CLAUDE.md
 .env
 .env.example
 .gitignore
