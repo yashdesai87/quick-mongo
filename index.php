@@ -195,6 +195,9 @@ try {
             }
 
 
+            // Disable execution time limit: streaming large files can take minutes
+            set_time_limit(0);
+
             // Send chunks straight to the client; GridFS files can exceed PHP memory
             while (ob_get_level() > 0) {
                 ob_end_flush();
@@ -214,6 +217,9 @@ try {
             header('Content-Disposition: '.$disposition);
 
             foreach ($file['chunks'] as $chunk) {
+                if (connection_aborted()) {
+                    break;
+                }
                 echo $chunk->data->getData();
                 flush();
             }
