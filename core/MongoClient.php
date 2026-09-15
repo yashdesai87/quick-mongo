@@ -41,24 +41,30 @@ class MongoClient
      */
     public function listDatabases()
     {
-        $command = new MongoDB\Driver\Command(['listDatabases' => 1]);
-        $cursor = $this->client->executeCommand('admin', $command);
-
         $databases = [];
 
-        foreach ($cursor as $document) {
-            if (isset($document->databases)) {
-                foreach ($document->databases as $db) {
-                    // Skip system databases
-                    if (! in_array($db->name, ['admin', 'config', 'local'])) {
-                        $databases[] = [
-                            'name' => $db->name,
-                            'sizeOnDisk' => $db->sizeOnDisk ?? 0,
-                            'empty' => $db->empty ?? false,
-                        ];
+        try {
+            $command = new MongoDB\Driver\Command(['listDatabases' => 1]);
+            $cursor = $this->client->executeCommand('admin', $command);
+
+            foreach ($cursor as $document) {
+                if (isset($document->databases)) {
+                    foreach ($document->databases as $db) {
+                        // Skip system databases
+                        if (! in_array($db->name, ['admin', 'config', 'local'])) {
+                            $databases[] = [
+                                'name' => $db->name,
+                                'sizeOnDisk' => $db->sizeOnDisk ?? 0,
+                                'empty' => $db->empty ?? false,
+                            ];
+                        }
                     }
                 }
             }
+        } catch (Exception $e) {
+            // A user restricted to a specific database lacks cluster-level listDatabases
+            // privileges on 'admin'. Log and return an empty list rather than crashing.
+            error_log('Failed to list databases: '.$e->getMessage());
         }
 
         // Sort by name

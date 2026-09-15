@@ -227,7 +227,7 @@ try {
     }
 
     // Get list of all databases for sidebar
-    $allDatabases = $mongo->listDatabases();
+    $allDatabases = ($action === 'databases' && isset($databases)) ? $databases : $mongo->listDatabases();
     $currentDatabase = Security::param($_GET['db'] ?? '');
 
     // Render with layout
