@@ -194,7 +194,6 @@ try {
                 $filename = Security::sanitizeFilename(json_encode($fileDoc->_id)) ?: 'download';
             }
 
-
             // Disable execution time limit: streaming large files can take minutes
             set_time_limit(0);
 
@@ -251,4 +250,3 @@ try {
 
     View::error($message, 500, $debugInfo);
 }
-

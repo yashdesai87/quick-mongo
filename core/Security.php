@@ -156,4 +156,3 @@ class Security
         return $filename;
     }
 }
-

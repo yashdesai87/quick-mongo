@@ -14,5 +14,4 @@ RUN install-php-extensions mongodb \
     && sed -i 's/^expose_php = On/expose_php = Off/' "$PHP_INI_DIR/php.ini" \
     && a2enconf quick-mongo
 
-
 COPY . /var/www/html/

@@ -75,7 +75,6 @@ $env = loadEnvironment();
 define('MONGO_URI', $env['MONGO_URI'] ?? 'mongodb://localhost:27017');
 define('APP_DEBUG', ($env['APP_DEBUG'] ?? 'false') === 'true');
 
-
 // Error handler
 set_error_handler(function ($severity, $message, $file, $line) {
     if (! (error_reporting() & $severity)) {
