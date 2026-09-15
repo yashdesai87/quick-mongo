@@ -29,22 +29,73 @@ A single document as highlighted JSON, with a tree view one click away:
 
 - PHP 8.1 or newer with the `mongodb` extension 1.16 or newer (`pecl install mongodb`)
 - A MongoDB server the PHP driver can reach
-- Apache 2.4 with `mod_rewrite`, or PHP's built-in server for local use
+- Apache 2.4 with `mod_rewrite`, nginx with php-fpm, or PHP's built-in server for local use
+
+The folder itself never has to be writable, and the app never has to sit at the document root. A copy at `/tools/quick-mongo/` works as it is, because every link, asset and form in it is relative.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and set:
-   - `MONGO_URI`: connection string, default `mongodb://localhost:27017`
-   - `APP_DEBUG`: `true` shows exception details on error pages, keep it `false` anywhere shared
+### 1. Configuration, if you need any
 
-   Real environment variables with the same names override the file, so containers can skip `.env` entirely.
+Against a MongoDB on localhost with no authentication there is nothing to configure, so skip to step 2. Otherwise copy `.env.example` to `.env` and set:
 
-2. Serve the folder:
-   - Apache: point a virtual host or a subdirectory at the folder. `.htaccess` handles routing and denies `config/`, `core/`, `views/` and dotfiles.
-   - Built-in server: run `php -S localhost:8080 router.php` from the folder. `router.php` applies the same deny rules because the built-in server ignores `.htaccess`.
-   - nginx: route every request to `index.php` and deny the same paths in the server block.
+- `MONGO_URI`: connection string, default `mongodb://localhost:27017`
+- `APP_DEBUG`: `true` shows exception details on error pages, keep it `false` anywhere shared
 
-3. Open the URL in a browser.
+Real environment variables of the same name win over the file, which is how the Docker image is configured. Under php-fpm they reach PHP only if the pool passes them on, since `clear_env = yes` is the default, so either set them with `env[MONGO_URI] = ...` in the pool config or use `.env` and forget about it.
+
+### 2. Serve the folder
+
+**Apache 2.4.** Copy the folder into the document root or any subdirectory of it, and make sure `.htaccess` is actually read:
+
+```
+<Directory /var/www/html>
+    AllowOverride All
+</Directory>
+```
+
+This matters. Debian and Ubuntu ship `AllowOverride None` for the document root, and with that the `.htaccess` in this folder is ignored in full, so there is no routing, no deny rules, and `.env` is downloadable. `mod_rewrite` has to be on (`a2enmod rewrite`). `mod_headers` and `mod_expires` are used when present and skipped when not.
+
+**PHP built-in server.** From inside the folder:
+
+```
+php -S localhost:8080 router.php
+```
+
+`router.php` applies the same deny rules, because the built-in server ignores `.htaccess`.
+
+**nginx with php-fpm.** There is no `.htaccess` to fall back on, so the server block carries the same policy: serve `assets/`, refuse dotfiles and internals, send everything else to `index.php`.
+
+```nginx
+server {
+    listen 80;
+    server_name mongo.example.com;
+    root /var/www/quick-mongo;
+
+    # Certificate renewal: ^~ wins over the dotfile regex below
+    location ^~ /.well-known/ { }
+
+    # Assets are the only thing served from disk
+    location ^~ /assets/ { try_files $uri =404; }
+
+    # Application internals and dotfiles are never served
+    location ~ ^/(config|core|views)(/|$) { return 403; }
+    location ~ /\.                        { return 403; }
+
+    # Everything else is the front controller
+    location / { rewrite ^ /index.php last; }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+    }
+}
+```
+
+To run it under a subdirectory instead, put the same four `location` blocks under that prefix and set `root` so the prefix resolves into the folder.
+
+### 3. Open the URL in a browser
 
 ## Run with Docker
 
