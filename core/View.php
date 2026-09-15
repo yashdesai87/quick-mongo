@@ -81,24 +81,11 @@ class View
     {
         http_response_code($statusCode);
 
-        $data = [
-            'title' => 'Error',
-            'message' => $message,
-            'statusCode' => $statusCode,
-        ];
-
-        // Check if we have an error view
-        if (file_exists(VIEWS_PATH.'/error.php')) {
-            $content = self::render('error', $data);
-            echo self::renderWithLayout($content, $data);
-        } else {
-            // Fallback error display
-            echo '<div style="padding: 20px; font-family: sans-serif;">';
-            echo '<h1>Error '.$statusCode.'</h1>';
-            echo '<p>'.htmlspecialchars($message).'</p>';
-            echo '<a href="/">Go back</a>';
-            echo '</div>';
-        }
+        echo '<div style="padding: 20px; font-family: sans-serif;">';
+        echo '<h1>Error '.$statusCode.'</h1>';
+        echo '<p>'.htmlspecialchars($message).'</p>';
+        echo '<a href="?">Go back</a>';
+        echo '</div>';
         exit;
     }
 
