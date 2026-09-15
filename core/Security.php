@@ -74,8 +74,10 @@ class Security
             return false;
         }
 
-        // Cannot start or end with a dot
-        if (str_starts_with($name, '.') || str_ends_with($name, '.')) {
+        // MongoDB refuses a leading dot outright, so the namespace would be
+        // invalid. This also covers names that are nothing but dots. A trailing
+        // dot is legal and is left alone.
+        if (str_starts_with($name, '.')) {
             return false;
         }
 
