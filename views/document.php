@@ -39,50 +39,58 @@
             <!-- Tree View -->
             <div class="tree-view" id="document-tree">
                 <?php
-            function renderJsonTree($data, $level = 0)
-            {
-                if (is_array($data) || is_object($data)) {
-                    $isIndexed = is_array($data) && array_keys($data) === range(0, count($data) - 1);
+            if (! function_exists('renderJsonTree')) {
+                function renderJsonTree($data, $level = 0)
+                {
+                    if ($level > 20) {
+                        echo '<ul class="json-tree"><li><span class="text-muted">[Max depth reached]</span></li></ul>';
 
-                    echo '<ul class="json-tree'.($level === 0 ? ' root' : '').'">';
-
-                    foreach ($data as $key => $value) {
-                        echo '<li>';
-
-                        if (is_array($value) || is_object($value)) {
-                            $count = is_array($value) ? count($value) : count((array) $value);
-                            $type = is_array($value) ? 'Array' : 'Object';
-
-                            echo '<span class="json-toggle expanded">';
-                            echo '<span class="json-key">'.Security::escape($key).'</span>';
-                            echo '<span class="json-type">'.$type.'['.$count.']</span>';
-                            echo '</span>';
-
-                            echo '<div class="json-nested">';
-                            renderJsonTree($value, $level + 1);
-                            echo '</div>';
-                        } else {
-                            echo '<span class="json-item">';
-                            if (! $isIndexed) {
-                                echo '<span class="json-key">'.Security::escape($key).':</span> ';
-                            }
-
-                            if (is_bool($value)) {
-                                echo '<span class="json-value json-boolean">'.($value ? 'true' : 'false').'</span>';
-                            } elseif ($value === null) {
-                                echo '<span class="json-value json-null">null</span>';
-                            } elseif (is_numeric($value)) {
-                                echo '<span class="json-value json-number">'.Security::escape($value).'</span>';
-                            } else {
-                                echo '<span class="json-value json-string">"'.Security::escape($value).'"</span>';
-                            }
-                            echo '</span>';
-                        }
-
-                        echo '</li>';
+                        return;
                     }
 
-                    echo '</ul>';
+                    if (is_array($data) || is_object($data)) {
+                        $isIndexed = is_array($data) && array_keys($data) === range(0, count($data) - 1);
+
+                        echo '<ul class="json-tree'.($level === 0 ? ' root' : '').'">';
+
+                        foreach ($data as $key => $value) {
+                            echo '<li>';
+
+                            if (is_array($value) || is_object($value)) {
+                                $count = is_array($value) ? count($value) : count((array) $value);
+                                $type = is_array($value) ? 'Array' : 'Object';
+
+                                echo '<span class="json-toggle expanded">';
+                                echo '<span class="json-key">'.Security::escape($key).'</span>';
+                                echo '<span class="json-type">'.$type.'['.$count.']</span>';
+                                echo '</span>';
+
+                                echo '<div class="json-nested">';
+                                renderJsonTree($value, $level + 1);
+                                echo '</div>';
+                            } else {
+                                echo '<span class="json-item">';
+                                if (! $isIndexed) {
+                                    echo '<span class="json-key">'.Security::escape($key).':</span> ';
+                                }
+
+                                if (is_bool($value)) {
+                                    echo '<span class="json-value json-boolean">'.($value ? 'true' : 'false').'</span>';
+                                } elseif ($value === null) {
+                                    echo '<span class="json-value json-null">null</span>';
+                                } elseif (is_numeric($value)) {
+                                    echo '<span class="json-value json-number">'.Security::escape($value).'</span>';
+                                } else {
+                                    echo '<span class="json-value json-string">"'.Security::escape($value).'"</span>';
+                                }
+                                echo '</span>';
+                            }
+
+                            echo '</li>';
+                        }
+
+                        echo '</ul>';
+                    }
                 }
             }
 

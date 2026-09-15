@@ -244,11 +244,8 @@ try {
 
     // Display user-friendly error
     $message = 'An error occurred while processing your request.';
+    $debugInfo = APP_DEBUG ? $e->getMessage() : null;
 
-    // Show detailed error in debug mode
-    if (APP_DEBUG) {
-        $message .= '<br><br><strong>Debug Info:</strong><br>'.$e->getMessage();
-    }
-
-    View::error($message, 500);
+    View::error($message, 500, $debugInfo);
 }
+

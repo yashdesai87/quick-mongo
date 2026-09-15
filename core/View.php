@@ -46,14 +46,20 @@ class View
     /**
      * Display error page
      */
-    public static function error($message, $statusCode = 500)
+    public static function error($message, $statusCode = 500, $debugInfo = null)
     {
         http_response_code($statusCode);
 
         echo '<div style="padding: 20px; font-family: sans-serif;">';
         echo '<h1>Error '.$statusCode.'</h1>';
         echo '<p>'.htmlspecialchars($message).'</p>';
-        echo '<a href="?">Go back</a>';
+        if ($debugInfo !== null && $debugInfo !== '') {
+            echo '<div style="margin-top: 15px; padding: 12px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">';
+            echo '<strong>Debug Info:</strong>';
+            echo '<pre style="margin-top: 8px; white-space: pre-wrap; font-family: monospace;">'.htmlspecialchars($debugInfo).'</pre>';
+            echo '</div>';
+        }
+        echo '<p style="margin-top: 15px;"><a href="?">Go back</a></p>';
         echo '</div>';
         exit;
     }
