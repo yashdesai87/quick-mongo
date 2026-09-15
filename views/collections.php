@@ -33,7 +33,7 @@
                             </td>
                             <td>
                                 <span class="badge badge-info">
-                                    <?php echo number_format($collection['count']); ?> documents
+                                    <?php echo number_format($collection['count']); ?> <?php echo $collection['count'] == 1 ? 'document' : 'documents'; ?>
                                 </span>
                             </td>
                             <td>
